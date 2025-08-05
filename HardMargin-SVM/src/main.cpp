@@ -12,7 +12,7 @@
 
 // Define Namespace
 namespace fs = std::filesystem;
-namespace po = boost::program_options;
+namespace po = boost::program_options; // 用以解析程序的输入选项
 
 // Function Prototype
 void Collect_Paths(const std::string root, const std::string sub, std::vector<std::string> &paths);
@@ -58,10 +58,12 @@ int main(int argc, const char *argv[]){
 
     // (1) Extract Arguments
     po::options_description args = parse_arguments();
-    po::variables_map vm{};
-    po::store(po::parse_command_line(argc, argv, args), vm);
-    po::notify(vm);
-    if (vm.empty() || vm.count("help")){
+    po::variables_map vm{};// 存储从命令行中解析出来的具体选项和值；如 ./my_cpp --level 10，则解析后vm会保存键level和值10
+
+    po::store(po::parse_command_line(argc, argv, args), vm); //对main的原始命令行argc和argv用 args的规则来识别，保存到vm中
+    po::notify(vm);// 生效
+
+    if (vm.empty() || vm.count("help")){ // 如果命令行输入为空或者为help，则输出 规则
         std::cout << args << std::endl;
         return 1;
     }
@@ -72,6 +74,7 @@ int main(int argc, const char *argv[]){
     std::vector<std::vector<double>> train_class1_data;
     /*****************************************************/
     train_class1_dir = "datasets/" + vm["dataset"].as<std::string>() + "/" + vm["train_class1_dir"].as<std::string>();
+    //命令行输入了 --dataset 的值，.as<std::string>() 将输入值转换为string类型，函数声明用了模板
     train_class1_paths = Get_Paths(train_class1_dir);
     train_class1_data = Get_Data(train_class1_paths, vm["nd"].as<size_t>());
 
@@ -85,7 +88,7 @@ int main(int argc, const char *argv[]){
     train_class2_data = Get_Data(train_class2_paths, vm["nd"].as<size_t>());
 
     // (2.3) Training for SVM
-    HardMargin_SVM svm(vm["verbose"].as<bool>());
+    HardMargin_SVM svm(vm["verbose"].as<bool>()); // verbose表示是否输出详细信息
     svm.train(train_class1_data, train_class2_data, vm["nd"].as<size_t>(), vm["lr"].as<double>());
 
     // (3.1) Get Test Data for class 1

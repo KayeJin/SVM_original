@@ -31,7 +31,7 @@ public:
     size_t correct_c1, correct_c2;
 
     // constructor
-    HardMargin_SVM() = delete;
+    HardMargin_SVM() = delete; // 不使用参数进行初始化是不行的
     HardMargin_SVM(const bool verbose_=true);
 
     // function

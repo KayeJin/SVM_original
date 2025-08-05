@@ -67,21 +67,21 @@ void HardMargin_SVM::train(const std::vector<std::vector<double>> class1_data, c
     std::vector<double> alpha;
 
     // (1.1) Set class 1 data
-    for (i = 0; i < class1_data.size(); i++){
+    for (i = 0; i < class1_data.size(); i++){   // class 1是正标签的值
         x.push_back(class1_data[i]);
         y.push_back(1);
     }
 
     // (1.2) Set class 2 data
-    for (i = 0; i < class2_data.size(); i++){
+    for (i = 0; i < class2_data.size(); i++){   // class 2是负标签的值
         x.push_back(class2_data[i]);
         y.push_back(-1);
     }
 
     // (2) Set Lagrange Multiplier and Parameters
-    N = x.size();
-    alpha = std::vector<double>(N, 0.0);
-    beta = 1.0;
+    N = x.size(); // 训练数据的大小
+    alpha = std::vector<double>(N, 0.0); // N个weight 为0
+    beta = 1.0; // b = 1.0
 
     // (3) Training
     this->log("\n");
@@ -92,30 +92,30 @@ void HardMargin_SVM::train(const std::vector<std::vector<double>> class1_data, c
         error = 0.0;
 
         // (3.1) Update Alpha
-        for (i = 0; i < N; i++){
+        for (i = 0; i < N; i++){ // N个样本
 
-            // Set item 1
-            item1 = 0.0;
+            // Set item 1     Partial Derivate of \alpha的一部分
+            item1 = 0.0; 
             for (j = 0; j < N; j++){
                 item1 += alpha[j] * (double)y[i] * (double)y[j] * this->dot(x[i], x[j]);
             }
 
-            // Set item 2
-            item2 = 0.0;
+            // Set item 2     Partial Derivate of \alpha的另一部分 
+            item2 = 0.0;     
             for (j = 0; j < N; j++){
                 item2 += alpha[j] * (double)y[i] * (double)y[j];
             }
             
-            // Set Delta
+            // Set Delta       ！ Partial Derivate of \alpha（对L用 \alpha求偏导）
             delta = 1.0 - item1 - beta * item2;
 
-            // Update
+            // Update Alpha  --- 当然\alpha沿着梯度方向前进，lr为学习律，控制前进幅度
             alpha[i] += lr * delta;
             if (alpha[i] < 0.0){
-                alpha[i] = 0.0;
+                alpha[i] = 0.0; // KKT条件：所有拉格朗日乘子都需要 >= 0
             }
-            else if (std::abs(delta) > limit){
-                judge = true;
+            else if (std::abs(delta) > limit){ // 检查是否在收敛，即是否满足KKT条件，对\alpha_i求偏导表示样本i满足KKT的程度
+                judge = true;  // std::abs(delta)越接近0，说明是收敛的。如果偏离0超过了一定limit，则需要回拨
                 error += std::abs(delta) - limit;
             }
 
